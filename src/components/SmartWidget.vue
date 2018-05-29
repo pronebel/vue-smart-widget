@@ -2,6 +2,7 @@
   <div class="smartwidget"
     :class="smartWidgetClass"
     :id="smartWidgetId">
+    <!-- widget header -->
     <div class="widget-header" :style="widgetHeaderHeight" v-if="!simple">
       <h2>
         <i class="widget-header__prefix"></i>
@@ -12,7 +13,7 @@
       </h4>
       <div class="widget-header__toolbar">
         <!-- collapse icon -->
-        <a href="#" v-if="collapse && !isFullScreen" @click="isCollapsed=!isCollapsed"><i :class="isCollapsed ? 'el-icon-plus' : 'el-icon-minus'"></i></a>
+        <a href="#" v-if="collapse && !isFullScreen" @click="handleCollapse"><i :class="isCollapsed ? 'el-icon-plus' : 'el-icon-minus'"></i></a>
         <!-- fullscreen icon -->
         <a href="#" v-if="fullscreen" @click="handleScreenfull"><i class="el-icon-rank"></i></a>
         <!-- refresh icon -->
@@ -20,8 +21,8 @@
         <slot name="toolbar"></slot>
       </div>
     </div>
+    <!-- end widget header -->
     <!-- widget body -->
-    <!-- <div class="widget-body" -->
     <div :class="simple ? 'widget-body-simple' : 'widget-body'" :style="{'height': isCollapsed ? '0px' : widgetBodyHeight}"
       ref="widgetBody">
       <!-- widget edit box -->
@@ -52,6 +53,7 @@
 <script>
 import screenfull from 'screenfull'
 
+import bus from './bus'
 import { generateUUID } from '@/public/utils'
 
 import LoadingMask from './LoadingMask'
@@ -81,6 +83,7 @@ export default {
     collapse: { type: Boolean, default: false },
     // toogle refresh button
     refresh: { type: Boolean, default: false },
+    // toogle whether widget body content need fixed height
     fixedHeight: { type: Boolean, default: false }
   },
   data () {
@@ -150,6 +153,13 @@ export default {
         this.isCollapsed = this.isFullScreenCollapsed
       }
       screenfull.enabled && screenfull.toggle(this.$el)
+    },
+    handleCollapse () {
+      this.isCollapsed = !this.isCollapsed
+      bus.$emit('on-collapsed', {
+        i: this.$parent.i,
+        isCollapsed: this.isCollapsed
+      })
     },
     getPaddingH () {
       let paddingH = 0
@@ -257,7 +267,6 @@ export default {
       align-items: center;
       justify-content: flex-end;
       padding: 0;
-      // padding-right: 12px;
       margin: 0;
       a {
         display: inline-block;

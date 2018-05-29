@@ -4,7 +4,7 @@
     @layout-updated="layoutUpdatedEvent"
   >
     <grid-item
-      v-for="item in layout"
+      v-for="item in testLayout"
       :key="item.i"
       v-bind="item"
       dragIgnoreFrom=".widget-body"
@@ -19,6 +19,8 @@
 </template>
 
 <script>
+import bus from './bus'
+
 import { GridLayout, GridItem } from 'vue-grid-layout'
 
 export default {
@@ -71,7 +73,9 @@ export default {
         isMirrored: false,
         verticalCompact: true,
         useCssTransforms: true
-      }
+      },
+      testLayout: this.layout,
+      oldItemH: ''
     }
   },
   methods: {
@@ -90,6 +94,21 @@ export default {
     resizedEvent (i, newH, newW, newHPx, newWPx) {
       this.$emit('layout-updated', { i, newH, newW, newHPx, newWPx })
     }
+  },
+  created () {
+    bus.$on('on-collapsed', ({ i, isCollapsed }) => {
+      const itemIndex = this.layout.findIndex(v => v.i === i)
+      if (isCollapsed) {
+        this.$nextTick(_ => {
+          this.layout[itemIndex].oldH = this.layout[itemIndex].h
+          this.testLayout[itemIndex].h = 1
+        })
+      } else {
+        this.$nextTick(_ => {
+          this.testLayout[itemIndex].h = this.layout[itemIndex].oldH
+        })
+      }
+    })
   }
 }
 </script>
